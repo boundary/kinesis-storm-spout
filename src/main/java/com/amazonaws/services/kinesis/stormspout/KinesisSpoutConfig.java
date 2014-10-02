@@ -15,7 +15,11 @@
 
 package com.amazonaws.services.kinesis.stormspout;
 
+import com.amazonaws.regions.Regions;
+
 import java.io.Serializable;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Kinesis Spout configuration.
@@ -24,6 +28,7 @@ public class KinesisSpoutConfig implements Serializable {
     private static final long serialVersionUID = 3528909581809795597L;
 
     private final String streamName;
+    private Regions region = Regions.DEFAULT_REGION;
     private int maxRecordsPerCall = 10000;
     private InitialPositionInStream initialPositionInStream = InitialPositionInStream.LATEST;
     private int checkpointIntervalMillis = 60000;
@@ -205,6 +210,22 @@ public class KinesisSpoutConfig implements Serializable {
     public KinesisSpoutConfig withMaxRecordsPerCall(int maxRecordsPerCall) {
         checkValueIsPositive(maxRecordsPerCall, "maxRecordsPerCall");
         this.maxRecordsPerCall = maxRecordsPerCall;
+        return this;
+    }
+
+    /**
+     * @return region
+     */
+    public Regions getRegion() {
+        return region;
+    }
+
+    /**
+     * @param region to use for kinesis stream, defaults to @see com.amazonaws.regions.Region.DEFAULT_REGION
+     * @return KinesisSpoutConfig
+     */
+    public KinesisSpoutConfig withRegion(Regions region) {
+        this.region = checkNotNull(region);
         return this;
     }
 }

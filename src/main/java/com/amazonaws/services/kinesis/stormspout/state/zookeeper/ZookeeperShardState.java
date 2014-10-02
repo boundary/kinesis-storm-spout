@@ -15,10 +15,16 @@
 
 package com.amazonaws.services.kinesis.stormspout.state.zookeeper;
 
-import java.io.IOException;
-import java.util.Random;
-import java.util.concurrent.Callable;
-
+import com.amazonaws.services.kinesis.stormspout.KinesisSpoutConfig;
+import com.amazonaws.services.kinesis.stormspout.exceptions.KinesisSpoutException;
+import com.amazonaws.services.kinesis.stormspout.state.zookeeper.NodeFunction.Mod;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
+import org.apache.curator.RetryLoop;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
@@ -26,16 +32,8 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.amazonaws.services.kinesis.stormspout.KinesisSpoutConfig;
-import com.amazonaws.services.kinesis.stormspout.exceptions.KinesisSpoutException;
-import com.amazonaws.services.kinesis.stormspout.state.zookeeper.NodeFunction.Mod;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
-import com.netflix.curator.RetryLoop;
-import com.netflix.curator.framework.CuratorFramework;
-import com.netflix.curator.framework.CuratorFrameworkFactory;
-import com.netflix.curator.retry.ExponentialBackoffRetry;
+import java.util.Random;
+import java.util.concurrent.Callable;
 
 /**
  * Handles communication with Zookeeper and methods specific to the spout for saving/restoring
@@ -61,13 +59,8 @@ class ZookeeperShardState {
         this.config = config;
         this.rand = new Random();
 
-        try {
-            zk = CuratorFrameworkFactory.newClient(config.getZookeeperConnectionString(),
-                    new ExponentialBackoffRetry(BASE_SLEEP_TIME_MS, MAX_NUM_RETRIES));
-        } catch (IOException e) {
-            LOG.error("Could not connect to ZooKeeper", e);
-            throw new KinesisSpoutException(e);
-        }
+        zk = CuratorFrameworkFactory.newClient(config.getZookeeperConnectionString(),
+                new ExponentialBackoffRetry(BASE_SLEEP_TIME_MS, MAX_NUM_RETRIES));
         zk.start();
     }
 

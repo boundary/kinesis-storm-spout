@@ -73,7 +73,8 @@ public class KinesisSpout implements IRichSpout, Serializable {
             AWSCredentialsProvider credentialsProvider,
             ClientConfiguration clientConfiguration) {
         this.config = config;
-        KinesisHelper helper = new KinesisHelper(config.getStreamName(), credentialsProvider, clientConfiguration);
+        KinesisHelper helper =
+                new KinesisHelper(config.getStreamName(), config.getRegion(), credentialsProvider, clientConfiguration);
         this.shardListGetter = helper;
         this.getterBuilder =
                 new KinesisShardGetterBuilder(config.getStreamName(), helper, config.getMaxRecordsPerCall());

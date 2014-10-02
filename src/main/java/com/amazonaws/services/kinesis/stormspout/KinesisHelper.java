@@ -15,21 +15,22 @@
 
 package com.amazonaws.services.kinesis.stormspout;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.kinesis.AmazonKinesisClient;
 import com.amazonaws.services.kinesis.model.DescribeStreamRequest;
 import com.amazonaws.services.kinesis.model.DescribeStreamResult;
 import com.amazonaws.services.kinesis.model.Shard;
 import com.amazonaws.services.kinesis.stormspout.utils.ShardIdComparator;
 import com.google.common.collect.ImmutableSortedMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Helper class to fetch the shard list from Kinesis, create Kinesis client objects, etc.
@@ -44,6 +45,7 @@ class KinesisHelper implements IShardListGetter {
     private final byte[] serializedKinesisCredsProvider;
     private final byte[] serializedkinesisClientConfig;
     private final String streamName;
+    private final Regions region;
 
     private transient AWSCredentialsProvider kinesisCredsProvider;
     private transient ClientConfiguration kinesisClientConfig;
@@ -55,11 +57,13 @@ class KinesisHelper implements IShardListGetter {
      * @param kinesisClientConfig Configuration for the Kinesis client.
      */
     KinesisHelper(final String streamName,
-            final AWSCredentialsProvider kinesisCredsProvider,
-            final ClientConfiguration kinesisClientConfig) {
+                  final Regions region,
+                  final AWSCredentialsProvider kinesisCredsProvider,
+                  final ClientConfiguration kinesisClientConfig) {
         this.streamName = streamName;
         this.serializedKinesisCredsProvider = SerializationHelper.kryoSerializeObject(kinesisCredsProvider);
         this.serializedkinesisClientConfig = SerializationHelper.kryoSerializeObject(kinesisClientConfig);
+        this.region = region;
 
         this.kinesisCredsProvider = null;
         this.kinesisClientConfig = null;
@@ -99,6 +103,7 @@ class KinesisHelper implements IShardListGetter {
      */
     private AmazonKinesisClient makeNewKinesisClient() {
         final AmazonKinesisClient client = new AmazonKinesisClient(getKinesisCredsProvider(), getClientConfiguration());
+        client.setRegion(Region.getRegion(region));
         return client;
     }
 
